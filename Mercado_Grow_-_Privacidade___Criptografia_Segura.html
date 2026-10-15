@@ -1,0 +1,390 @@
+<!-- ... existing code ... -->
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- ... existing code ... -->
+
+<!-- ... existing code ... -->
+      <!-- Categorias Header / Grid -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold mb-4 text-emerald-300 flex items-center gap-2">
+          <i data-lucide="layout-grid" class="w-5 h-5 text-emerald-400"></i> Categorias
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3" id="categories-grid">
+          <!-- Categorias com vetores modernos renderizadas via JS -->
+        </div>
+      </div>
+<!-- ... existing code ... -->
+
+<!-- ... existing code ... -->
+      <!-- Perfil / Informações do Usuário com Edição de Endereço e Pagamentos -->
+      <div id="profile-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-emerald-500/30 w-full max-w-lg rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+          <button onclick="toggleProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+          
+          <h2 class="text-2xl font-bold mb-6 text-emerald-400 flex items-center gap-2">
+            <i data-lucide="user-check" class="w-6 h-6"></i> Minhas Informações
+          </h2>
+
+          <div class="space-y-4">
+            <!-- Dados Pessoais -->
+            <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
+              <span class="text-xs text-gray-400 block mb-1">Nome Cadastrado</span>
+              <p class="font-medium text-gray-100" id="user-name-display">João da Silva</p>
+            </div>
+
+            <!-- Endereço clicável para abrir página de ajuste por CEP -->
+            <div onclick="openAddressModal()" class="bg-gray-800/60 p-4 rounded-xl border border-gray-700 hover:border-emerald-500/50 cursor-pointer transition-all group relative">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Endereço Principal (Clique para Editar)
+                </span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 group-hover:text-emerald-400 transition-transform group-hover:translate-x-1"></i>
+              </div>
+              <p class="font-medium text-gray-100 text-sm" id="user-address-display">Carregando endereço...</p>
+              <p class="text-xs text-gray-400 mt-1" id="user-cep-display">CEP: --</p>
+            </div>
+
+            <!-- Meios de Pagamento Cadastrados clicáveis -->
+            <div onclick="openPaymentsModal()" class="bg-gray-800/60 p-4 rounded-xl border border-gray-700 hover:border-emerald-500/50 cursor-pointer transition-all group">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                  <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Formas de Pagamento Cadastradas
+                </span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 group-hover:text-emerald-400 transition-transform group-hover:translate-x-1"></i>
+              </div>
+              <p class="font-medium text-gray-100 text-sm" id="user-payment-summary">1 Cartão e 1 Chave PIX cadastrados</p>
+              <p class="text-xs text-gray-400 mt-1">Gerencie seus métodos salvos para checkout rápido</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Exclusivo para Ajustar Endereço via CEP Inteligente -->
+      <div id="address-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-emerald-500/40 w-full max-w-md rounded-2xl p-6 relative">
+          <button onclick="closeAddressModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+
+          <h3 class="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-5 h-5"></i> Alterar Endereço de Entrega
+          </h3>
+
+          <form id="address-form" onsubmit="saveAddress(event)" class="space-y-3">
+            <!-- CEP vem em Primeiro com Busca Automática -->
+            <div>
+              <label class="block text-xs text-emerald-300 font-semibold mb-1">CEP (Primeira Informação)*</label>
+              <div class="relative">
+                <input type="text" id="input-cep" maxlength="9" placeholder="00000-000" oninput="handleCepInput(this)" class="w-full bg-gray-800 border border-emerald-500/30 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-400 text-sm" required>
+                <span id="cep-loading" class="hidden absolute right-3 top-2.5 text-xs text-emerald-400 flex items-center gap-1">
+                  <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Buscando...
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Rua / Logradouro</label>
+              <input type="text" id="input-street" placeholder="Preenchido via CEP" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none" required readonly>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-emerald-300 font-semibold mb-1">Número*</label>
+                <input type="text" id="input-number" placeholder="Ex: 123" class="w-full bg-gray-800 border border-emerald-500/30 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-400" required>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">Complemento</label>
+                <input type="text" id="input-complement" placeholder="Apt / Bloco" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Bairro</label>
+              <input type="text" id="input-neighborhood" placeholder="Preenchido via CEP" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none" required readonly>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div class="col-span-2">
+                <label class="block text-xs text-gray-400 mb-1">Cidade</label>
+                <input type="text" id="input-city" placeholder="Cidade" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none" required readonly>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">UF</label>
+                <input type="text" id="input-uf" placeholder="UF" class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none text-center uppercase" required readonly>
+              </div>
+            </div>
+
+            <button type="submit" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-900/30">
+              Salvar Endereço Atualizado
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal de Gestão de Formas de Pagamento Cadastradas -->
+      <div id="payments-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-emerald-500/40 w-full max-w-md rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+          <button onclick="closePaymentsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+
+          <h3 class="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-2">
+            <i data-lucide="wallet" class="w-5 h-5"></i> Formas de Pagamento Salvas
+          </h3>
+
+          <!-- Lista de Métodos Salvos -->
+          <div id="saved-payments-list" class="space-y-3 mb-6">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+
+          <!-- Formulário Adicionar Novo Cartão -->
+          <div class="border-t border-gray-800 pt-4">
+            <h4 class="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Novo Cartão
+            </h4>
+            <form id="payment-form" onsubmit="addPaymentMethod(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">Número do Cartão</label>
+                <input type="text" id="card-number" placeholder="**** **** **** 1234" maxlength="19" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-400 focus:outline-none" required>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1">Nome no Cartão</label>
+                  <input type="text" id="card-holder" placeholder="NOME COMO NO CARTÃO" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm uppercase focus:border-emerald-400 focus:outline-none" required>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1">Validade (MM/AA)</label>
+                  <input type="text" id="card-expiry" placeholder="12/28" maxlength="5" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-400 focus:outline-none" required>
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-emerald-600/90 hover:bg-emerald-500 text-white font-medium py-2 rounded-lg text-sm transition-all mt-2">
+                Cadastrar Forma de Pagamento
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+<!-- ... existing code ... -->
+
+<script>
+// ... existing code ...
+
+// Categorias Atualizadas com Ícones Vetoriais Lucide (Sem Emojis)
+const categoriesData = [
+  { id: 'all', name: 'Todas', icon: 'grid' },
+  { id: 'fertilizantes', name: 'Fertilizantes', icon: 'sprout' },
+  { id: 'substratos', name: 'Substratos', icon: 'layers' },
+  { id: 'iluminacao', name: 'Iluminação LED', icon: 'sun' },
+  { id: 'estufas', name: 'Estufas & Tendas', icon: 'box' },
+  { id: 'ventilacao', name: 'Ventilação', icon: 'wind' },
+  { id: 'acessorios', name: 'Acessórios e Ferramentas', icon: 'wrench' }
+];
+
+// Dados do Usuário e Endereço
+let userProfile = {
+  name: "João da Silva",
+  cep: "01001-000",
+  street: "Praça da Sé",
+  number: "100",
+  complement: "Apto 42",
+  neighborhood: "Sé",
+  city: "São Paulo",
+  uf: "SP"
+};
+
+// Formas de Pagamento Salvas
+let savedPaymentMethods = [
+  { id: 1, type: 'card', title: 'Mastercard Final 8832', subtitle: 'Expira em 11/28', isDefault: true },
+  { id: 2, type: 'pix', title: 'Chave PIX CPF', subtitle: '***.458.918-**', isDefault: false }
+];
+
+/* Renderiza as Categorias com Vetores Modernos */
+function renderCategories() {
+  const container = document.getElementById('categories-grid');
+  if (!container) return;
+
+  container.innerHTML = categoriesData.map(cat => `
+    <button onclick="filterByCategory('${cat.id}')" 
+      class="flex flex-col items-center justify-center p-3.5 rounded-xl bg-gray-900/80 border border-emerald-500/20 hover:border-emerald-400 hover:bg-emerald-950/30 transition-all text-center group">
+      <div class="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-gray-900 transition-all mb-2">
+        <i data-lucide="${cat.icon}" class="w-5 h-5"></i>
+      </div>
+      <span class="text-xs font-medium text-gray-200 group-hover:text-white">${cat.name}</span>
+    </button>
+  `).join('');
+
+  lucide.createIcons();
+}
+
+/* Modal do Perfil e Exibição de Informações */
+function toggleProfileModal() {
+  const modal = document.getElementById('profile-modal');
+  modal.classList.toggle('hidden');
+  updateProfileDisplay();
+}
+
+function updateProfileDisplay() {
+  const addrDisplay = document.getElementById('user-address-display');
+  const cepDisplay = document.getElementById('user-cep-display');
+  const paymentSummary = document.getElementById('user-payment-summary');
+
+  if (addrDisplay) {
+    addrDisplay.innerText = `${userProfile.street}, ${userProfile.number} ${userProfile.complement ? '- ' + userProfile.complement : ''} (${userProfile.neighborhood}, ${userProfile.city}/${userProfile.uf})`;
+  }
+  if (cepDisplay) {
+    cepDisplay.innerText = `CEP: ${userProfile.cep}`;
+  }
+  if (paymentSummary) {
+    paymentSummary.innerText = `${savedPaymentMethods.length} Método(s) de Pagamento Cadastrado(s)`;
+  }
+}
+
+/* Modal e Lógica do Endereço via CEP Inteligente */
+function openAddressModal() {
+  document.getElementById('profile-modal').classList.add('hidden');
+  document.getElementById('address-modal').classList.remove('hidden');
+
+  // Preenche inputs atuais
+  document.getElementById('input-cep').value = userProfile.cep;
+  document.getElementById('input-street').value = userProfile.street;
+  document.getElementById('input-number').value = userProfile.number;
+  document.getElementById('input-complement').value = userProfile.complement;
+  document.getElementById('input-neighborhood').value = userProfile.neighborhood;
+  document.getElementById('input-city').value = userProfile.city;
+  document.getElementById('input-uf').value = userProfile.uf;
+}
+
+function closeAddressModal() {
+  document.getElementById('address-modal').classList.add('hidden');
+  document.getElementById('profile-modal').classList.remove('hidden');
+}
+
+// Manipulação e Busca Automática por CEP (ViaCEP API)
+async function handleCepInput(input) {
+  let cep = input.value.replace(/\D/g, '');
+  if (cep.length > 5) {
+    cep = cep.replace(/^(\d{5})(\d)/, '$1-$2');
+  }
+  input.value = cep;
+
+  const rawCep = cep.replace('-', '');
+  if (rawCep.length === 8) {
+    const loader = document.getElementById('cep-loading');
+    if (loader) loader.classList.remove('hidden');
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${rawCep}/json/`);
+      const data = await response.json();
+
+      if (!data.erro) {
+        document.getElementById('input-street').value = data.logradouro || '';
+        document.getElementById('input-neighborhood').value = data.bairro || '';
+        document.getElementById('input-city').value = data.localidade || '';
+        document.getElementById('input-uf').value = data.uf || '';
+        document.getElementById('input-number').focus();
+      } else {
+        alert('CEP não encontrado. Digite um CEP válido.');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar CEP:', err);
+    } finally {
+      if (loader) loader.classList.add('hidden');
+    }
+  }
+}
+
+function saveAddress(e) {
+  e.preventDefault();
+  userProfile.cep = document.getElementById('input-cep').value;
+  userProfile.street = document.getElementById('input-street').value;
+  userProfile.number = document.getElementById('input-number').value;
+  userProfile.complement = document.getElementById('input-complement').value;
+  userProfile.neighborhood = document.getElementById('input-neighborhood').value;
+  userProfile.city = document.getElementById('input-city').value;
+  userProfile.uf = document.getElementById('input-uf').value;
+
+  closeAddressModal();
+  updateProfileDisplay();
+}
+
+/* Modal e Gestão de Pagamentos Cadastrados */
+function openPaymentsModal() {
+  document.getElementById('profile-modal').classList.add('hidden');
+  document.getElementById('payments-modal').classList.remove('hidden');
+  renderSavedPayments();
+}
+
+function closePaymentsModal() {
+  document.getElementById('payments-modal').classList.add('hidden');
+  document.getElementById('profile-modal').classList.remove('hidden');
+}
+
+function renderSavedPayments() {
+  const container = document.getElementById('saved-payments-list');
+  if (!container) return;
+
+  if (savedPaymentMethods.length === 0) {
+    container.innerHTML = `<p class="text-xs text-gray-400 italic">Nenhuma forma de pagamento salva.</p>`;
+    return;
+  }
+
+  container.innerHTML = savedPaymentMethods.map(pm => `
+    <div class="flex items-center justify-between bg-gray-800/80 p-3 rounded-xl border ${pm.isDefault ? 'border-emerald-500/50 bg-emerald-950/20' : 'border-gray-700'}">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg bg-gray-700/50 text-emerald-400">
+          <i data-lucide="${pm.type === 'card' ? 'credit-card' : 'qr-code'}" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h5 class="text-xs font-semibold text-gray-200">${pm.title} ${pm.isDefault ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded ml-1">Padrão</span>' : ''}</h5>
+          <span class="text-[11px] text-gray-400 block">${pm.subtitle}</span>
+        </div>
+      </div>
+      <button onclick="removePaymentMethod(${pm.id})" class="text-gray-500 hover:text-red-400 transition-colors p-1" title="Remover">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `).join('');
+
+  lucide.createIcons();
+}
+
+function addPaymentMethod(e) {
+  e.preventDefault();
+  const num = document.getElementById('card-number').value;
+  const expiry = document.getElementById('card-expiry').value;
+  const last4 = num.slice(-4) || '0000';
+
+  const newPm = {
+    id: Date.now(),
+    type: 'card',
+    title: `Cartão Final ${last4}`,
+    subtitle: `Expira em ${expiry}`,
+    isDefault: savedPaymentMethods.length === 0
+  };
+
+  savedPaymentMethods.push(newPm);
+  document.getElementById('payment-form').reset();
+  renderSavedPayments();
+  updateProfileDisplay();
+}
+
+function removePaymentMethod(id) {
+  savedPaymentMethods = savedPaymentMethods.filter(pm => pm.id !== id);
+  renderSavedPayments();
+  updateProfileDisplay();
+}
+
+// Inicialização de Ícones e Categorias ao carregar
+window.addEventListener('DOMContentLoaded', () => {
+  renderCategories();
+  updateProfileDisplay();
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+});
+</script>
+<!-- ... existing code ... -->
