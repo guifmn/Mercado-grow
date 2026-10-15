@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mercado Grow — Marketplace de Cultivo Indoor</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel Compiler for In-Browser JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            app: {
+              bg: '#18191A',          // Dark matte background
+              surface: '#242526',     // Card surface dark background
+              cardDark: '#2D2E30',    // Inner pill dark background
+              lime: '#D5E67A',        // Pastel lime green
+              gold: '#F8D179',        // Warm pastel yellow/gold
+              coral: '#F46E5D',       // Soft coral red
+              greyCard: '#E2E3E5',    // Light grey pastel card option
+              pillBg: '#111213',      // Extra dark pill elements
+              textDark: '#191A1B',    // Bold dark text over colored cards
+              textMuted: '#9E9FA3',   // Muted grey text
+              border: '#333538'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #18191A;
+      color: #E2E3E5;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Plant Growth Animation Keyframes */
+    @keyframes sprout-grow {
+      0% { transform: scale(0.3) translateY(30px); opacity: 0; }
+      50% { transform: scale(1.1) translateY(-5px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.4; transform: scale(0.98); }
+      50% { opacity: 0.8; transform: scale(1.03); }
+    }
+    @keyframes float-leaf {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(6deg); }
+    }
+
+    .animate-sprout {
+      animation: sprout-grow 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .animate-glow {
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+    .animate-float {
+      animation: float-leaf 4s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-app-bg text-app-greyCard min-h-screen pb-28">
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    const INITIAL_PRODUCTS = [
+      {
+        id: '1',
+        title: 'Painel LED Quantum Board 240W Samsung LM301H',
+        price: 1450.00,
+        condition: 'Novo',
+        category: 'Iluminação',
+        lat: -22.9056,
+        lng: -47.0608,
+        locationName: 'Campinas e Região',
+        sellerRealName: 'Eduardo M.',
+        sellerObfuscated: 'Cultivador Verificado #842',
+        sellerAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+        sellerRating: 4.9,
+        image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=80',
+        colorTheme: 'lime',
+        badge: 'OFERTAÇO'
+      },
+      {
+        id: '2',
+        title: 'Estufa / Tenda de Cultivo Garden Highpro 80x80x160cm',
+        price: 580.00,
+        condition: 'Usado',
+        category: 'Tendas & Estufas',
+        lat: -22.9120,
+        lng: -47.0700,
+        locationName: 'Jardim Guanabara',
+        sellerRealName: 'Camila R.',
+        sellerObfuscated: 'Grower Anônimo #109',
+        sellerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+        sellerRating: 4.8,
+        image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80',
+        colorTheme: 'gold',
+        badge: 'MAIS VENDIDO'
+      },
+      {
+        id: '3',
+        title: 'Exaustor In-Line Turbo 125mm + Filtro de Carvão Ativo',
+        price: 390.00,
+        condition: 'Usado',
+        category: 'Ventilação & Exaustão',
+        lat: -22.8800,
+        lng: -47.0500,
+        locationName: 'Barão Geraldo',
+        sellerRealName: 'Felipe S.',
+        sellerObfuscated: 'Membro Mestre #332',
+        sellerAvatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80',
+        sellerRating: 5.0,
+        image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80',
+        colorTheme: 'coral',
+        badge: 'ÚLTIMAS UNIDADES'
+      },
+      {
+        id: '4',
+        title: 'Medidor de pH e EC Digital de Precisão Waterproof',
+        price: 210.00,
+        condition: 'Novo',
+        category: 'Medidores & Automação',
+        lat: -22.9200,
+        lng: -47.0400,
+        locationName: 'Cambuí',
+        sellerRealName: 'Lucas K.',
+        sellerObfuscated: 'Cultivador Verificado #901',
+        sellerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+        sellerRating: 4.7,
+        image: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=800&q=80',
+        colorTheme: 'greyCard'
+      },
+      {
+        id: '5',
+        title: 'Kit Nutrientes Biobizz Indoor Pack (Grow, Bloom, Top-Max)',
+        price: 185.00,
+        condition: 'Novo',
+        category: 'Nutrientes',
+        lat: -22.9000,
+        lng: -47.0600,
+        locationName: 'Nova Campinas',
+        sellerRealName: 'Renata M.',
+        sellerObfuscated: 'Grower Anônimo #405',
+        sellerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+        sellerRating: 4.9,
+        image: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=800&q=80',
+        colorTheme: 'lime'
+      },
+      {
+        id: '6',
+        title: 'Vaso de Feltro 11 Litros Reforçado com Alça (Kit 4 un)',
+        price: 89.90,
+        condition: 'Novo',
+        category: 'Substratos & Vasos',
+        lat: -22.9100,
+        lng: -47.0550,
+        locationName: 'Centro',
+        sellerRealName: 'Gustavo T.',
+        sellerObfuscated: 'Cultivador Verificado #201',
+        sellerAvatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=120&q=80',
+        sellerRating: 5.0,
+        image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=800&q=80',
+        colorTheme: 'gold'
+      }
+    ];
+
+    const CATEGORIES = [
+      'Tudo',
+      'Iluminação',
+      'Tendas & Estufas',
+      'Substratos & Vasos',
+      'Nutrientes',
+      'Ventilação & Exaustão',
+      'Medidores & Automação',
+      'Acessórios'
+    ];
+
+    const CATEGORY_CARDS = [
+      { id: 'Iluminação', name: 'Iluminação LED & HPS', icon: '💡', desc: 'Quantum Boards, Cob LEDs e Refletores', color: 'bg-app-lime/20 border-app-lime text-app-lime' },
+      { id: 'Tendas & Estufas', name: 'Tendas & Estufas', icon: '⛺', desc: 'Cabines MyLar refletivas de todos os tamanhos', color: 'bg-app-gold/20 border-app-gold text-app-gold' },
+      { id: 'Substratos & Vasos', name: 'Substratos & Vasos', icon: '🪴', desc: 'Turfa, perlita, vasilhames e vasos de feltro', color: 'bg-emerald-500/20 border-emerald-400 text-emerald-400' },
+      { id: 'Nutrientes', name: 'Nutrientes & Adubos', icon: '🧪', desc: 'Fertilizantes orgânicos e minerais', color: 'bg-app-coral/20 border-app-coral text-app-coral' },
+      { id: 'Ventilação & Exaustão', name: 'Ventilação & Exaustão', icon: '🌀', desc: 'Exaustores, filtros de carvão e ventiladores', color: 'bg-sky-400/20 border-sky-400 text-sky-400' },
+      { id: 'Medidores & Automação', name: 'Medidores & Automação', icon: '📊', desc: 'Canetas pH/EC, timers e termo-higrômetros', color: 'bg-purple-400/20 border-purple-400 text-purple-400' },
+      { id: 'Acessórios', name: 'Acessórios Diversos', icon: '✂️', desc: 'Tesouras de trima, óculos UV e microscópios', color: 'bg-orange-400/20 border-orange-400 text-orange-400' }
+    ];
+
+    const INITIAL_NOTIFICATIONS = [
+      {
+        id: 'n1',
+        title: '🎟️ Cupom VIP Disponível!',
+        desc: 'Você ganhou R$ 30,00 OFF para compras acima de R$ 200,00 em Iluminação LED.',
+        time: 'Há 10 min',
+        unread: true
+      },
+      {
+        id: 'n2',
+        title: '❤️ Interesse no seu produto',
+        desc: 'Alguém favoritou seu anúncio "Exaustor In-Line Turbo 125mm".',
+        time: 'Há 1 hora',
+        unread: true
+      },
+      {
+        id: 'n3',
+        title: '🔒 Atualização de Segurança',
+        desc: 'Sua chave de criptografia AES-256 foi atualizada com sucesso.',
+        time: 'Há 1 dia',
+        unread: false
+      }
+    ];
+
+    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return (R * c).toFixed(1);
+    }
+
+    function App() {
+      // Intro Flow States: 'welcome' -> 'loading' -> 'main'
+      const [appStage, setAppStage] = useState('welcome');
+      const [loadingProgress, setLoadingProgress] = useState(0);
+      const [loadingStepText, setLoadingStepText] = useState('Preparando estufa...');
+
+      // User Authentication State
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
+      const [currentUser, setCurrentUser] = useState(null);
+      const [isGrowPlusSubscriber, setIsGrowPlusSubscriber] = useState(false);
+      
+      // Tabs: 'inicio' | 'categorias' | 'carrinho' | 'chat' | 'perfil' | 'anunciar'
+      const [activeTab, setActiveTab] = useState('inicio');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('Tudo');
+      const [selectedProduct, setSelectedProduct] = useState(null);
+      const [favorites, setFavorites] = useState([]);
+      const [cart, setCart] = useState([]);
+      
+      // Modals
+      const [showAuthModal, setShowAuthModal] = useState(false);
+      const [authStep, setAuthStep] = useState('prompt'); // 'prompt' | 'login' | 'register' | 'plan'
+      const [showPlanModal, setShowPlanModal] = useState(false);
+      const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+      const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+      
+      // Active Chat State
+      const [activeChat, setActiveChat] = useState(null);
+      const [chatMessages, setChatMessages] = useState([]);
+      const [inputMessage, setInputMessage] = useState('');
+      const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+      const [recordingTime, setRecordingTime] = useState(0);
+      const chatEndRef = useRef(null);
+
+      // Create Product Form State
+      const [newProductForm, setNewProductForm] = useState({
+        title: '',
+        category: 'Iluminação',
+        price: '',
+        condition: 'Novo',
+        description: '',
+        dispatchDays: '1 dia útil',
+        weightKg: '1.5',
+        dimensions: '30x30x10 cm',
+        photos: []
+      });
+
+      const [userLocation, setUserLocation] = useState({ lat: -22.9056, lng: -47.0608, address: 'Alameda Tijuco 86' });
+      const [products, setProducts] = useState(INITIAL_PRODUCTS);
+
+      useEffect(() => {
+        if (window.lucide) window.lucide.createIcons();
+      });
+
+      useEffect(() => {
+        if (chatEndRef.current) {
+          chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, [chatMessages]);
+
+      const handleStartAppTransition = () => {
+        setAppStage('loading');
+        setLoadingProgress(10);
+
+        const steps = [
+          { time: 1000, progress: 30, text: 'Germinando conexão segura...' },
+          { time: 2500, progress: 60, text: 'Ativando criptografia de ponta a ponta...' },
+          { time: 4200, progress: 85, text: 'Carregando catálogo do cultivo indoor...' },
+          { time: 5800, progress: 100, text: 'Tudo pronto! Bem-vindo ao Mercado Grow.' }
+        ];
+
+        steps.forEach((step) => {
+          setTimeout(() => {
+            setLoadingProgress(step.progress);
+            setLoadingStepText(step.text);
+          }, step.time);
+        });
+
+        setTimeout(() => {
+          setAppStage('main');
+        }, 6500);
+      };
+
+      const handleProfileClick = () => {
+        if (isAuthenticated) {
+          setActiveTab('perfil');
+        } else {
+          setAuthStep('prompt');
+          setShowAuthModal(true);
+        }
+      };
+
+      const handleAuthSuccess = (name, email) => {
+        setCurrentUser({
+          name: name || 'Cultivador Seguro',
+          email: email || 'usuario@privado.com',
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+          code: '#' + Math.floor(1000 + Math.random() * 9000),
+          address: 'Alameda Tijuco 86, São Paulo - SP'
+        });
+        setIsAuthenticated(true);
+        setAuthStep('plan');
+      };
+
+      const handleSubscribePlan = () => {
+        setIsGrowPlusSubscriber(true);
+        setShowAuthModal(false);
+        setShowPlanModal(false);
+        alert('🎉 Parabéns! Seu plano grow+ foi ativado com sucesso. Aproveite todos os cupons e benefícios VIP!');
+        if (selectedProduct) {
+          startSecureChat(selectedProduct);
+        }
+      };
+
+      const handleSkipPlan = () => {
+        setShowAuthModal(false);
+        setShowPlanModal(false);
+        if (selectedProduct) {
+          startSecureChat(selectedProduct);
+        }
+      };
+
+      const addToCart = (product, e) => {
+        if (e) e.stopPropagation();
+        setCart(prev => {
+          const existing = prev.find(item => item.product.id === product.id);
+          if (existing) {
+            return prev.map(item => 
+              item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+            );
+          }
+          return [...prev, { product, quantity: 1 }];
+        });
+        alert(`🛒 "${product.title}" foi adicionado ao seu carrinho seguro!`);
+      };
+
+      const updateCartQuantity = (productId, delta) => {
+        setCart(prev => {
+          return prev.map(item => {
+            if (item.product.id === productId) {
+              const newQty = item.quantity + delta;
+              return newQty > 0 ? { ...item, quantity: newQty } : null;
+            }
+            return item;
+          }).filter(Boolean);
+        });
+      };
+
+      const startSecureChat = (product) => {
+        const initialMsgs = [
+          {
+            id: 'system-1',
+            type: 'system',
+            text: '🔒 Chat protegido por Criptografia End-to-End. Suas conversas, mídias e dados de entrega permanecem sigilosos.'
+          },
+          {
+            id: 'seller-1',
+            type: 'seller',
+            senderName: product.sellerRealName,
+            text: `Olá! Vi seu interesse no produto "${product.title}". Como posso te ajudar com as condições ou dúvidas?`,
+            time: 'Agora'
+          }
+        ];
+        setActiveChat({
+          product,
+          sellerName: product.sellerRealName,
+          sellerAvatar: product.sellerAvatar,
+          productTitle: product.title,
+          productPrice: product.price,
+          productImage: product.image
+        });
+        setChatMessages(initialMsgs);
+        setSelectedProduct(null);
+        setActiveTab('chat');
+      };
+
+      const handleSendMessage = (e) => {
+        if (e) e.preventDefault();
+        if (!inputMessage.trim()) return;
+
+        const newMsg = {
+          id: Date.now().toString(),
+          type: 'user',
+          text: inputMessage,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        setChatMessages(prev => [...prev, newMsg]);
+        setInputMessage('');
+
+        setTimeout(() => {
+          const autoReplies = [
+            'Perfeito! Consigo enviar via frete discreto e sem identificação na embalagem.',
+            'O produto está funcionando 100%. Se quiser, posso te mandar um vídeo mostrando ele ligado!',
+            'Consigo fazer um desconto de 5% para fecharmos a negociação hoje mesmo.',
+            'Está disponível para pronta entrega. Posso postar amanhã de manhã com código de rastreio criptografado.'
+          ];
+          const randomReply = autoReplies[Math.floor(Math.random() * autoReplies.length)];
+
+          setChatMessages(prev => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              type: 'seller',
+              senderName: activeChat.sellerName,
+              text: randomReply,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]);
+        }, 1200);
+      };
+
+      const handleSendMedia = (mediaType) => {
+        let mediaObj = null;
+        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (mediaType === 'image') {
+          mediaObj = {
+            id: Date.now().toString(),
+            type: 'user',
+            mediaType: 'image',
+            mediaUrl: activeChat.productImage,
+            caption: '📷 Imagem criptografada enviada.',
+            time: timeNow
+          };
+        } else if (mediaType === 'video') {
+          mediaObj = {
+            id: Date.now().toString(),
+            type: 'user',
+            mediaType: 'video',
+            mediaUrl: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=80',
+            caption: '📹 Vídeo demonstrativo (0:15)',
+            time: timeNow
+          };
+        } else if (mediaType === 'audio') {
+          setIsRecordingAudio(false);
+          mediaObj = {
+            id: Date.now().toString(),
+            type: 'user',
+            mediaType: 'audio',
+            duration: `${recordingTime || 4}s`,
+            caption: '🎤 Mensagem de voz criptografada',
+            time: timeNow
+          };
+        }
+
+        if (mediaObj) {
+          setChatMessages(prev => [...prev, mediaObj]);
+          
+          setTimeout(() => {
+            setChatMessages(prev => [
+              ...prev,
+              {
+                id: (Date.now() + 1).toString(),
+                type: 'seller',
+                senderName: activeChat.sellerName,
+                text: 'Recebi sua mídia com sucesso! Tudo verificado e encriptado.',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              }
+            ]);
+          }, 1500);
+        }
+      };
+
+      const handleAddPhotoSlot = () => {
+        if (newProductForm.photos.length >= 20) {
+          alert('Você atingiu o limite de 20 fotos por anúncio.');
+          return;
+        }
+        const sampleImages = [
+          'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=800&q=80'
+        ];
+        const randomImg = sampleImages[newProductForm.photos.length % sampleImages.length];
+        setNewProductForm(prev => ({
+          ...prev,
+          photos: [...prev.photos, randomImg]
+        }));
+      };
+
+      const handlePublishProduct = (e) => {
+        e.preventDefault();
+        if (!newProductForm.title || !newProductForm.price) {
+          alert('Por favor, preencha o título e o preço do anúncio.');
+          return;
+        }
+
+        const createdItem = {
+          id: Date.now().toString(),
+          title: newProductForm.title,
+          price: parseFloat(newProductForm.price),
+          condition: newProductForm.condition,
+          category: newProductForm.category,
+          lat: userLocation.lat,
+          lng: userLocation.lng,
+          locationName: 'Sua Localização',
+          sellerRealName: currentUser?.name || 'Você',
+          sellerObfuscated: 'Anunciante Seguro #' + Math.floor(100 + Math.random() * 900),
+          sellerAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+          sellerRating: 5.0,
+          image: newProductForm.photos[0] || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=80',
+          colorTheme: 'lime',
+          badge: 'NOVO ANÚNCIO'
+        };
+
+        setProducts(prev => [createdItem, ...prev]);
+        alert('🎉 Anúncio publicado com sucesso no Mercado Grow!');
+        setActiveTab('inicio');
+      };
+
+      const filteredProducts = useMemo(() => {
+        return products.filter(p => {
+          const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                p.category.toLowerCase().includes(searchQuery.toLowerCase());
+          const matchesCategory = selectedCategory === 'Tudo' || p.category === selectedCategory;
+          return matchesSearch && matchesCategory;
+        });
+      }, [products, searchQuery, selectedCategory]);
+
+      const cartTotal = useMemo(() => {
+        return cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+      }, [cart]);
+
+      // 1. WELCOME / INTRO SCREEN
+      if (appStage === 'welcome') {
+        return (
+          <div className="max-w-md mx-auto min-h-screen bg-app-bg text-app-greyCard flex flex-col justify-between p-6 relative overflow-hidden">
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-app-lime/10 rounded-full blur-3xl animate-glow pointer-events-none"></div>
+            <div className="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-app-gold/10 rounded-full blur-3xl animate-glow pointer-events-none"></div>
+
+            <div className="pt-8 text-center relative z-10">
+              <div className="inline-flex items-center gap-2 bg-app-cardDark border border-app-gold/30 px-3 py-1.5 rounded-full text-[11px] font-bold text-app-gold mb-6 shadow-md">
+                <i data-lucide="shield-check" className="w-4 h-4 text-app-lime"></i>
+                Marketplace 100% Criptografado & Seguro
+              </div>
+
+              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-app-lime via-app-gold to-app-coral rounded-3xl p-0.5 shadow-2xl animate-float">
+                <div className="w-full h-full bg-app-bg rounded-[22px] flex items-center justify-center">
+                  <span className="text-4xl animate-sprout">🌱</span>
+                </div>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight mb-3">
+                Bem-vindo ao <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-app-lime via-app-gold to-app-coral">
+                  Mercado Grow
+                </span>
+              </h1>
+
+              <p className="text-xs sm:text-sm text-app-textMuted font-medium leading-relaxed max-w-xs mx-auto">
+                O mercado feito sob medida para você que quer começar ou evoluir seu cultivo indoor com privacidade e equipamentos garantidos.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 relative z-10 my-6">
+              <div className="bg-app-surface/90 border border-app-border p-3.5 rounded-2xl flex items-center gap-3 backdrop-blur-sm">
+                <div className="w-10 h-10 rounded-xl bg-app-lime/20 text-app-lime flex items-center justify-center font-bold text-lg flex-shrink-0">
+                  💡
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-white">Equipamentos Especializados</h3>
+                  <p className="text-[10px] text-app-textMuted">Painéis LED, estufas, exaustão, fertilizantes e acessórios.</p>
+                </div>
+              </div>
+
+              <div className="bg-app-surface/90 border border-app-border p-3.5 rounded-2xl flex items-center gap-3 backdrop-blur-sm">
+                <div className="w-10 h-10 rounded-xl bg-app-gold/20 text-app-gold flex items-center justify-center font-bold text-lg flex-shrink-0">
+                  🔒
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-white">Negociação Criptografada</h3>
+                  <p className="text-[10px] text-app-textMuted">Chats e mídias sigilosas diretamente com vendedores verificados.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 relative z-10 pb-4">
+              <button 
+                onClick={handleStartAppTransition}
+                className="w-full bg-gradient-to-r from-app-gold via-app-lime to-emerald-400 text-app-textDark font-black text-sm py-4 rounded-full shadow-xl hover:opacity-95 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <span>Continuar para o Mercado Grow</span>
+                <i data-lucide="arrow-right" className="w-5 h-5"></i>
+              </button>
+
+              <button 
+                onClick={() => {
+                  setAuthStep('prompt');
+                  setShowAuthModal(true);
+                  handleStartAppTransition();
+                }}
+                className="w-full text-xs font-bold text-app-greyCard hover:text-white text-center py-2 underline opacity-80"
+              >
+                Já tenho uma conta / Fazer Login
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // 2. ANIMATED LOADING SCREEN WITH PLANT GROWING
+      if (appStage === 'loading') {
+        return (
+          <div className="max-w-md mx-auto min-h-screen bg-app-bg text-app-greyCard flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            <div className="absolute w-80 h-80 bg-app-lime/10 rounded-full blur-3xl animate-pulse"></div>
+
+            <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+              
+              <div className="relative w-32 h-32 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-4 border-app-surface border-t-app-lime animate-spin"></div>
+                <div className="text-5xl animate-sprout">
+                  {loadingProgress < 40 ? '🌱' : loadingProgress < 80 ? '🌿' : '🪴'}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-lg font-black text-white tracking-tight">
+                  Entrando no Mercado Grow
+                </h2>
+                <p className="text-xs text-app-gold font-bold min-h-[20px] transition-all">
+                  {loadingStepText}
+                </p>
+              </div>
+
+              <div className="w-64 bg-app-surface h-2 rounded-full overflow-hidden border border-app-border p-0.5">
+                <div 
+                  className="bg-gradient-to-r from-app-gold via-app-lime to-emerald-400 h-full rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${loadingProgress}%` }}
+                ></div>
+              </div>
+
+              <span className="text-[11px] font-mono font-bold text-app-textMuted">
+                {loadingProgress}% concluído
+              </span>
+
+            </div>
+          </div>
+        );
+      }
+
+      // 3. MAIN APP VIEW
+      return (
+        <div className="max-w-md mx-auto min-h-screen bg-app-bg text-app-greyCard relative">
+
+          {/* TOP APP BAR */}
+          <div className="bg-app-surface p-3 pb-2 border-b border-app-border sticky top-0 z-30 shadow-md">
+            <div className="flex items-center gap-2 mb-2.5">
+              <button 
+                onClick={handleProfileClick}
+                className="w-10 h-10 rounded-full bg-app-cardDark border-2 border-app-gold overflow-hidden flex-shrink-0 relative group"
+                title="Sua Conta & Criptografia"
+              >
+                {isAuthenticated ? (
+                  <img src={currentUser.avatar} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-app-gold text-app-textDark font-bold text-xs">
+                    <i data-lucide="user" className="w-5 h-5"></i>
+                  </div>
+                )}
+                <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 ${isGrowPlusSubscriber ? 'bg-app-gold' : 'bg-emerald-500'} rounded-full border-2 border-app-surface`} title="Status Ativo"></span>
+              </button>
+
+              <div className="flex-1 relative flex items-center bg-white text-app-textDark rounded-full px-3 py-2 shadow-inner">
+                <i data-lucide="search" className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0"></i>
+                <input 
+                  type="text" 
+                  placeholder="Buscar no Mercado Grow"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent text-xs text-app-textDark placeholder-gray-400 focus:outline-none"
+                />
+                <button className="text-gray-400 hover:text-gray-600 ml-1">
+                  <i data-lucide="camera" className="w-4 h-4"></i>
+                </button>
+              </div>
+
+              {/* NOTIFICATION BELL BUTTON */}
+              <button 
+                onClick={() => setShowNotificationsModal(true)}
+                className="relative w-9 h-9 rounded-full bg-app-cardDark flex items-center justify-center text-app-greyCard hover:text-white transition-colors"
+              >
+                <i data-lucide="bell" className="w-4 h-4"></i>
+                {notifications.some(n => n.unread) && (
+                  <span className="absolute -top-1 -right-1 bg-app-coral text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {notifications.filter(n => n.unread).length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* ADDRESS ROW (SECURE OBFUSCATED UNLESS AUTHENTICATED) */}
+            <div className="flex items-center text-xs text-app-greyCard mb-2 px-1">
+              <i data-lucide="shield-check" className="w-3.5 h-3.5 text-emerald-400 mr-1.5 flex-shrink-0"></i>
+              {isAuthenticated ? (
+                <div className="flex items-center gap-1 font-semibold truncate text-app-lime">
+                  <span>Enviar para {currentUser.address}</span>
+                  <i data-lucide="chevron-right" className="w-3 h-3 text-app-textMuted"></i>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 font-bold truncate text-app-gold">
+                  <span>Enviar para endereço seguro e criptografado</span>
+                  <i data-lucide="lock" className="w-3 h-3 text-app-gold ml-1"></i>
+                </div>
+              )}
+            </div>
+
+            {/* Horizontal Categories Scrollbar */}
+            <div className="flex gap-4 overflow-x-auto custom-scrollbar pt-1 pb-1 text-xs font-semibold">
+              {CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      if (activeTab !== 'inicio') setActiveTab('inicio');
+                    }}
+                    className={`whitespace-nowrap pb-1 border-b-2 transition-colors ${
+                      isSelected 
+                        ? 'border-app-gold text-app-gold font-bold' 
+                        : 'border-transparent text-app-textMuted hover:text-app-greyCard'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* MAIN HOME TAB */}
+          {activeTab === 'inicio' && (
+            <div className="p-3 space-y-3">
+              <div 
+                onClick={() => setShowPlanModal(true)}
+                className="bg-app-coral text-white rounded-2xl p-3 flex items-center justify-between shadow-lg cursor-pointer hover:opacity-95 transition-all group"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="bg-white/20 font-black text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                    grow+
+                  </span>
+                  <span className="text-xs font-bold leading-tight">
+                    Criptografia total nas mensagens + Frete Anônimo
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0 bg-black/20 px-2 py-1 rounded-full text-[10px] font-black group-hover:translate-x-0.5 transition-transform">
+                  <span>R$ 9,99/mês</span>
+                  <i data-lucide="chevron-right" className="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+
+              {/* PRODUCTS FEED */}
+              <div className="pt-2 pb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-black tracking-tight text-white uppercase">Anúncios Recomendados</h2>
+                  <span className="text-[11px] text-app-gold font-bold flex items-center gap-1">
+                    <i data-lucide="shield-check" className="w-3.5 h-3.5"></i> Vendedores Protegidos
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {filteredProducts.map((product) => {
+                    const dist = calculateDistanceKm(userLocation.lat, userLocation.lng, product.lat, product.lng);
+                    let badgeBg = 'bg-app-lime text-app-textDark';
+                    if (product.colorTheme === 'gold') badgeBg = 'bg-app-gold text-app-textDark';
+                    if (product.colorTheme === 'coral') badgeBg = 'bg-app-coral text-white';
+
+                    return (
+                      <div 
+                        key={product.id}
+                        onClick={() => setSelectedProduct(product)}
+                        className="bg-app-surface border border-app-border rounded-2xl overflow-hidden flex flex-col justify-between cursor-pointer hover:border-app-gold transition-all shadow-md relative group"
+                      >
+                        <div>
+                          <div className="relative h-36 bg-black/20">
+                            <img src={product.image} className="w-full h-full object-cover" />
+                            
+                            {/* CART BUTTON REPLACING HEART */}
+                            <button 
+                              onClick={(e) => addToCart(product, e)}
+                              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-app-gold text-app-textDark font-bold flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                              title="Adicionar ao Carrinho"
+                            >
+                              <i data-lucide="shopping-cart" className="w-4 h-4"></i>
+                            </button>
+
+                            {product.badge && (
+                              <span className={`absolute bottom-2 left-2 text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase ${badgeBg}`}>
+                                {product.badge}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="p-2.5">
+                            <span className="text-[10px] text-app-lime font-bold block mb-0.5">{product.category}</span>
+                            <h3 className="text-xs font-semibold text-white line-clamp-2 leading-snug mb-2">
+                              {product.title}
+                            </h3>
+
+                            <div className="text-base font-black text-white">
+                              R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                            </div>
+
+                            <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
+                              Frete Seguro & Discreto
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-2 pt-0 text-[10px] text-app-textMuted border-t border-app-border/50 mt-1 flex items-center justify-between">
+                          <span className="truncate">~{dist} km</span>
+                          <span className="bg-app-cardDark px-1.5 py-0.5 rounded text-[9px] font-bold text-app-greyCard">
+                            {product.condition}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CATEGORIES TAB PAGE */}
+          {activeTab === 'categorias' && (
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-black text-white tracking-tight uppercase">Todas as Categorias Grow</h2>
+                <span className="text-xs text-app-gold font-bold">100% Cultivo Indoor</span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {CATEGORY_CARDS.map((cat) => (
+                  <div 
+                    key={cat.id}
+                    onClick={() => {
+                      setSelectedCategory(cat.id);
+                      setActiveTab('inicio');
+                    }}
+                    className={`p-4 rounded-2xl border ${cat.color} cursor-pointer hover:scale-[1.01] transition-transform flex items-center justify-between shadow-md`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{cat.icon}</span>
+                      <div>
+                        <h3 className="text-sm font-extrabold text-white">{cat.name}</h3>
+                        <p className="text-[11px] text-app-greyCard opacity-80">{cat.desc}</p>
+                      </div>
+                    </div>
+                    <i data-lucide="chevron-right" className="w-5 h-5 opacity-70"></i>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SHOPPING CART TAB PAGE */}
+          {activeTab === 'carrinho' && (
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-black text-white tracking-tight uppercase flex items-center gap-2">
+                  <i data-lucide="shopping-cart" className="w-5 h-5 text-app-gold"></i>
+                  Seu Carrinho Seguro
+                </h2>
+                <span className="text-xs font-mono font-bold text-app-lime">{cart.length} itens</span>
+              </div>
+
+              {cart.length === 0 ? (
+                <div className="bg-app-surface border border-app-border rounded-2xl p-8 text-center space-y-3">
+                  <span className="text-4xl block">🛒</span>
+                  <h3 className="text-sm font-bold text-white">Seu carrinho está vazio</h3>
+                  <p className="text-xs text-app-textMuted max-w-xs mx-auto">
+                    Navegue pelas categorias de cultivo e adicione produtos para negociar diretamente com os vendedores.
+                  </p>
+                  <button 
+                    onClick={() => setActiveTab('inicio')}
+                    className="bg-app-gold text-app-textDark font-extrabold text-xs px-5 py-2.5 rounded-full shadow-md hover:opacity-90"
+                  >
+                    Explorar Produtos
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {cart.map((item) => (
+                    <div key={item.product.id} className="bg-app-surface border border-app-border p-3 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                      <img src={item.product.image} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                      
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-white truncate">{item.product.title}</h4>
+                        <span className="text-xs font-extrabold text-app-lime block mt-0.5">
+                          R$ {item.product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-semibold block">🔒 Embalagem Anônima</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 bg-app-cardDark px-2 py-1 rounded-full border border-app-border">
+                        <button 
+                          onClick={() => updateCartQuantity(item.product.id, -1)}
+                          className="w-5 h-5 rounded-full bg-app-surface text-white text-xs font-bold flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="text-xs font-mono font-bold text-white px-1">{item.quantity}</span>
+                        <button 
+                          onClick={() => updateCartQuantity(item.product.id, 1)}
+                          className="w-5 h-5 rounded-full bg-app-surface text-white text-xs font-bold flex items-center justify-center"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="bg-app-surface border border-app-border p-4 rounded-2xl space-y-2 mt-4">
+                    <div className="flex justify-between text-xs text-app-greyCard">
+                      <span>Subtotal</span>
+                      <span>R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-emerald-400 font-bold">
+                      <span>Frete Anônimo com Criptografia</span>
+                      <span>GRÁTIS</span>
+                    </div>
+                    <div className="border-t border-app-border pt-2 flex justify-between text-sm font-black text-white">
+                      <span>Total</span>
+                      <span className="text-app-gold">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          setAuthStep('prompt');
+                          setShowAuthModal(true);
+                        } else {
+                          alert('✅ Pedido seguro gerado com sucesso! Redirecionando para o vendedor...');
+                          setCart([]);
+                          setActiveTab('inicio');
+                        }
+                      }}
+                      className="w-full bg-gradient-to-r from-app-gold to-app-lime text-app-textDark font-black text-xs py-3.5 rounded-full shadow-lg mt-3"
+                    >
+                      Finalizar Compra Protegida
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CHAT TAB OVERVIEW PAGE */}
+          {activeTab === 'chat' && (
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-black text-white tracking-tight uppercase flex items-center gap-2">
+                  <i data-lucide="shield-check" className="w-5 h-5 text-emerald-400"></i>
+                  Caixa de Conversas Seguras
+                </h2>
+              </div>
+
+              {!isAuthenticated ? (
+                <div className="bg-app-surface border border-app-coral p-6 rounded-2xl text-center space-y-3">
+                  <span className="text-4xl block">🔒</span>
+                  <h3 className="text-sm font-bold text-white">Criptografia de Ponta a Ponta</h3>
+                  <p className="text-xs text-app-greyCard leading-relaxed">
+                    Sua privacidade é nossa prioridade. Crie uma conta ou faça login para trocar mensagens, fotos e áudios sigilosos com vendedores.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      setAuthStep('prompt');
+                      setShowAuthModal(true);
+                    }}
+                    className="bg-app-coral text-white font-black text-xs px-6 py-3 rounded-full shadow-lg"
+                  >
+                    Entrar ou Criar Conta Protegida
+                  </button>
+                </div>
+              ) : activeChat ? (
+                <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:border-app-gold" onClick={() => setActiveTab('chat')}>
+                  <div className="flex items-center gap-3">
+                    <img src={activeChat.sellerAvatar} className="w-10 h-10 rounded-full border border-app-gold object-cover" />
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{activeChat.sellerName}</h4>
+                      <p className="text-[10px] text-app-gold truncate max-w-[180px]">{activeChat.productTitle}</p>
+                      <span className="text-[9px] text-emerald-400 font-semibold">🔒 Chat Ativo • End-to-End</span>
+                    </div>
+                  </div>
+                  <i data-lucide="chevron-right" className="w-5 h-5 text-app-textMuted"></i>
+                </div>
+              ) : (
+                <div className="bg-app-surface border border-app-border rounded-2xl p-6 text-center text-xs text-app-textMuted space-y-2">
+                  <span>💬 Você ainda não iniciou nenhuma conversa. Escolha um produto e clique em "Iniciar Negociação Segura".</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CREATE NEW LISTING FORM TAB */}
+          {activeTab === 'anunciar' && (
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <button onClick={() => setActiveTab('perfil')} className="text-app-textMuted hover:text-white flex items-center gap-1 text-xs font-bold">
+                  <i data-lucide="arrow-left" className="w-4 h-4"></i> Voltar
+                </button>
+                <h2 className="text-sm font-black text-white uppercase">Novo Anúncio no Mercado Grow</h2>
+              </div>
+
+              <form onSubmit={handlePublishProduct} className="bg-app-surface border border-app-border p-4 rounded-2xl space-y-4">
+                
+                {/* PHOTO GALLERY UP TO 20 PHOTOS */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-bold text-white block">Galeria de Fotos (até 20 fotos)</label>
+                    <span className="text-[10px] font-mono text-app-gold font-bold">{newProductForm.photos.length}/20 fotos</span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2 my-2">
+                    {newProductForm.photos.map((url, idx) => (
+                      <div key={idx} className="relative h-16 rounded-xl overflow-hidden bg-black/40 border border-app-border">
+                        <img src={url} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                    
+                    {newProductForm.photos.length < 20 && (
+                      <button 
+                        type="button" 
+                        onClick={handleAddPhotoSlot}
+                        className="h-16 rounded-xl border-2 border-dashed border-app-gold/50 bg-app-cardDark flex flex-col items-center justify-center text-app-gold hover:bg-app-gold/10 transition-colors"
+                      >
+                        <i data-lucide="plus" className="w-5 h-5"></i>
+                        <span className="text-[9px] font-bold">+Foto</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-white uppercase block mb-1">Título do Anúncio</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="Ex: Painel LED Quantum Board 240W LM301H"
+                    value={newProductForm.title}
+                    onChange={(e) => setNewProductForm({ ...newProductForm, title: e.target.value })}
+                    className="w-full bg-app-cardDark text-xs text-white p-3 rounded-xl border border-app-border focus:outline-none focus:border-app-gold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-white uppercase block mb-1">Categoria</label>
+                    <select 
+                      value={newProductForm.category}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, category: e.target.value })}
+                      className="w-full bg-app-cardDark text-xs text-white p-3 rounded-xl border border-app-border focus:outline-none"
+                    >
+                      {CATEGORIES.filter(c => c !== 'Tudo').map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-white uppercase block mb-1">Estado</label>
+                    <select 
+                      value={newProductForm.condition}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, condition: e.target.value })}
+                      className="w-full bg-app-cardDark text-xs text-white p-3 rounded-xl border border-app-border focus:outline-none"
+                    >
+                      <option value="Novo">Novo</option>
+                      <option value="Usado">Usado</option>
+                      <option value="Seminovo">Seminovo</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-white uppercase block mb-1">Preço (R$)</label>
+                    <input 
+                      type="number" 
+                      required
+                      placeholder="1200.00"
+                      value={newProductForm.price}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, price: e.target.value })}
+                      className="w-full bg-app-cardDark text-xs text-white p-3 rounded-xl border border-app-border focus:outline-none focus:border-app-gold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-white uppercase block mb-1">Prazo de Envio</label>
+                    <input 
+                      type="text" 
+                      value={newProductForm.dispatchDays}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, dispatchDays: e.target.value })}
+                      className="w-full bg-app-cardDark text-xs text-white p-3 rounded-xl border border-app-border focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* DIMENSIONS & WEIGHT FOR AUTOMATIC SHIPPING */}
+                <div className="grid grid-cols-2 gap-2 border-t border-app-border/50 pt-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-white uppercase block mb-1">Peso Embalado (kg)</label>
+                    <input 
+                      type="text" 
+                      value={newProductForm.weightKg}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, weightKg: e.target.value })}
+                      className="w-full bg-app-cardDark text-xs text-white p-2.5 rounded-xl border border-app-border focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-white uppercase block mb-1">Dimensões (CxLxA cm)</label>
+                    <input 
+                      type="text" 
+                      value={newProductForm.dimensions}
+                      onChange={(e) => setNewProductForm({ ...newProductForm, dimensions: e.target.value })}
+                      className="w-full bg-app-cardDark text-xs text-white p-2.5 rounded-xl border border-app-border focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-app-gold to-app-lime text-app-textDark font-black text-xs py-3.5 rounded-full shadow-lg mt-2"
+                >
+                  Publicar Anúncio Criptografado
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* PROFILE & SETTINGS TAB PAGE */}
+          {activeTab === 'perfil' && (
+            <div className="p-4 space-y-4">
+              <div className="bg-app-surface rounded-2xl p-5 border border-app-border space-y-4 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <img src={currentUser?.avatar} className="w-14 h-14 rounded-full object-cover border-2 border-app-gold" />
+                    <span className={`absolute bottom-0 right-0 ${isGrowPlusSubscriber ? 'bg-app-gold' : 'bg-emerald-500'} w-4 h-4 rounded-full border-2 border-app-surface`} title="Proteção Ativa"></span>
+                  </div>
+                  <div>
+                    <h2 className="font-extrabold text-base text-white flex items-center gap-1.5">
+                      {currentUser?.name}
+                      {isGrowPlusSubscriber && (
+                        <span className="bg-app-gold text-app-textDark text-[9px] font-black px-1.5 py-0.5 rounded">VIP</span>
+                      )}
+                    </h2>
+                    <span className="text-xs text-app-gold font-bold block">{currentUser?.email}</span>
+                    <span className="text-[10px] text-app-textMuted">ID Criptografado: {currentUser?.code}</span>
+                  </div>
+                </div>
+
+                {/* CREATE NEW LISTING BUTTON */}
+                <button 
+                  onClick={() => setActiveTab('anunciar')}
+                  className="w-full bg-app-lime text-app-textDark font-black text-xs py-3 rounded-full shadow-md flex items-center justify-center gap-2 hover:opacity-95"
+                >
+                  <i data-lucide="plus-circle" className="w-4 h-4"></i>
+                  Criar Novo Anúncio de Venda
+                </button>
+
+                {!isGrowPlusSubscriber ? (
+                  <div 
+                    onClick={() => setShowPlanModal(true)}
+                    className="bg-app-coral/20 border border-app-coral p-3.5 rounded-2xl cursor-pointer hover:bg-app-coral/30 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black text-xs text-app-coral flex items-center gap-1">
+                        🚀 Upgrade para grow+ (R$ 9,99/mês)
+                      </span>
+                      <i data-lucide="chevron-right" className="w-4 h-4 text-app-coral"></i>
+                    </div>
+                    <p className="text-[11px] text-app-greyCard">
+                      Ganhe cupons exclusivos em compras + Criptografia Total e Frete Anônimo sem limites!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-app-cardDark p-3 rounded-xl border border-app-gold/40 text-xs text-app-gold font-semibold flex items-center gap-2">
+                    <i data-lucide="crown" className="w-5 h-5 flex-shrink-0"></i>
+                    <span>Sua assinatura <b>grow+ VIP</b> está ativa!</span>
+                  </div>
+                )}
+
+                {/* ACCOUNT EDIT SECTIONS */}
+                <div className="space-y-2 pt-2 border-t border-app-border">
+                  <div className="bg-app-cardDark p-3 rounded-xl flex items-center justify-between text-xs text-white">
+                    <span className="font-bold flex items-center gap-2">
+                      <i data-lucide="map-pin" className="w-4 h-4 text-app-gold"></i> Endereço Cadastrado
+                    </span>
+                    <span className="text-[10px] text-app-textMuted font-mono truncate max-w-[140px]">{currentUser?.address}</span>
+                  </div>
+
+                  <div className="bg-app-cardDark p-3 rounded-xl flex items-center justify-between text-xs text-white">
+                    <span className="font-bold flex items-center gap-2">
+                      <i data-lucide="credit-card" className="w-4 h-4 text-emerald-400"></i> Informações de Pagamento
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-bold">PIX / Cripto Protegido</span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setIsAuthenticated(false);
+                    setCurrentUser(null);
+                    setIsGrowPlusSubscriber(false);
+                    setAppStage('welcome');
+                  }}
+                  className="w-full bg-app-coral text-white font-bold text-xs py-3 rounded-full shadow-md"
+                >
+                  Sair da Conta
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* NOTIFICATIONS DRAWER MODAL */}
+          {showNotificationsModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+              <div className="bg-app-surface w-full max-w-md rounded-t-[28px] sm:rounded-[28px] p-5 border border-app-border max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
+                    <i data-lucide="bell" className="w-4 h-4 text-app-gold"></i> Central de Notificações
+                  </h3>
+                  <button onClick={() => setShowNotificationsModal(false)} className="text-app-textMuted">
+                    <i data-lucide="x" className="w-5 h-5"></i>
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {notifications.map((notif) => (
+                    <div key={notif.id} className="bg-app-cardDark p-3 rounded-2xl border border-app-border space-y-1">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-xs font-bold text-white">{notif.title}</h4>
+                        <span className="text-[9px] text-app-textMuted">{notif.time}</span>
+                      </div>
+                      <p className="text-[11px] text-app-greyCard opacity-90">{notif.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PRODUCT DETAIL MODAL */}
+          {selectedProduct && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+              <div className="bg-app-surface w-full max-w-md rounded-t-[28px] sm:rounded-[28px] p-5 border border-app-border max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-bold bg-app-gold text-app-textDark px-3 py-1 rounded-full">
+                    {selectedProduct.category}
+                  </span>
+                  <button onClick={() => setSelectedProduct(null)} className="p-1 text-app-textMuted">
+                    <i data-lucide="x" className="w-6 h-6"></i>
+                  </button>
+                </div>
+
+                <div className="h-52 w-full rounded-2xl overflow-hidden mb-4 bg-black/30">
+                  <img src={selectedProduct.image} className="w-full h-full object-cover" />
+                </div>
+
+                <h2 className="text-lg font-black text-white mb-1">{selectedProduct.title}</h2>
+                <div className="text-2xl font-black text-app-lime mb-3">
+                  R$ {selectedProduct.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+
+                <div className="bg-app-cardDark p-3 rounded-2xl border border-app-border mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img src={selectedProduct.sellerAvatar} className="w-9 h-9 rounded-full object-cover" />
+                    <div>
+                      <span className="font-bold text-xs text-white block">
+                        {isAuthenticated ? selectedProduct.sellerRealName : selectedProduct.sellerObfuscated}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-semibold block flex items-center gap-1">
+                        <i data-lucide="lock" className="w-3 h-3"></i> Identidade Protegida por Criptografia
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button 
+                    onClick={(e) => addToCart(selectedProduct, e)}
+                    className="bg-app-surface border border-app-gold text-app-gold font-bold text-xs py-3 rounded-full shadow-md flex items-center justify-center gap-2"
+                  >
+                    <i data-lucide="shopping-cart" className="w-4 h-4"></i>
+                    Adicionar ao Carrinho
+                  </button>
+
+                  <button 
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        setAuthStep('prompt');
+                        setShowAuthModal(true);
+                      } else {
+                        startSecureChat(selectedProduct);
+                      }
+                    }}
+                    className="bg-app-gold text-app-textDark font-black text-xs py-3 rounded-full shadow-lg flex items-center justify-center gap-1 hover:opacity-90"
+                  >
+                    <i data-lucide="message-square" className="w-4 h-4"></i>
+                    Negociação Segura
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AUTHENTICATION MODAL */}
+          {showAuthModal && (
+            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+              <div className="bg-app-coral text-app-textDark w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 relative border border-app-coral/30 shadow-2xl">
+                
+                <button 
+                  onClick={() => setShowAuthModal(false)}
+                  className="absolute top-5 right-5 text-app-textDark hover:opacity-75"
+                >
+                  <i data-lucide="x" className="w-6 h-6"></i>
+                </button>
+
+                {authStep === 'prompt' && (
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-app-textDark text-app-coral flex items-center justify-center mb-2">
+                      <i data-lucide="shield-check" className="w-7 h-7"></i>
+                    </div>
+
+                    <h2 className="text-xl font-black tracking-tight leading-tight">
+                      Acesso Seguro & Criptografado
+                    </h2>
+
+                    <div className="bg-app-textDark/10 p-3.5 rounded-2xl border border-app-textDark/20 text-xs font-medium space-y-2">
+                      <p className="flex items-center gap-2 font-bold">
+                        <span>🔒</span> Mensagens, áudios e imagens 100% protegidos
+                      </p>
+                      <p className="opacity-90 leading-relaxed">
+                        No Mercado Grow, nenhuma pessoa tem acesso à sua localização real nem aos seus chats. Toda a navegação é protegida por criptografia de ponta a ponta.
+                      </p>
+                    </div>
+
+                    <p className="text-xs font-bold pt-2">Você já possui uma conta cadastrada?</p>
+
+                    <div className="space-y-2 pt-1">
+                      <button 
+                        onClick={() => setAuthStep('login')}
+                        className="w-full bg-app-textDark text-white font-black text-xs py-3.5 rounded-full shadow-md hover:opacity-95"
+                      >
+                        Sim, já tenho conta
+                      </button>
+
+                      <button 
+                        onClick={() => setAuthStep('register')}
+                        className="w-full bg-white text-app-textDark font-black text-xs py-3.5 rounded-full shadow-md hover:bg-gray-100"
+                      >
+                        Não, quero criar minha conta protegida
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {authStep === 'login' && (
+                  <div>
+                    <button 
+                      onClick={() => setAuthStep('prompt')}
+                      className="text-xs font-bold text-app-textDark flex items-center gap-1 mb-3"
+                    >
+                      <i data-lucide="arrow-left" className="w-4 h-4"></i> Voltar
+                    </button>
+
+                    <h2 className="text-lg font-black mb-1">Entrar na Sua Conta</h2>
+                    <p className="text-xs font-semibold opacity-90 mb-4">
+                      🔒 Conexão segura habilitada.
+                    </p>
+
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAuthSuccess('Cultivador Registrado', e.target.email.value);
+                    }} className="space-y-3">
+                      <div>
+                        <label className="text-[10px] uppercase font-bold block mb-1">E-mail</label>
+                        <input 
+                          type="email" 
+                          name="email"
+                          required 
+                          placeholder="seu.email@protegido.com"
+                          className="w-full bg-app-textDark/10 placeholder-app-textDark/60 text-xs text-app-textDark p-3 rounded-xl border border-app-textDark/20 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold block mb-1">Senha</label>
+                        <input 
+                          type="password" 
+                          required 
+                          placeholder="••••••••••••"
+                          className="w-full bg-app-textDark/10 placeholder-app-textDark/60 text-xs text-app-textDark p-3 rounded-xl border border-app-textDark/20 focus:outline-none"
+                        />
+                      </div>
+
+                      <button 
+                        type="submit"
+                        className="w-full bg-app-textDark text-white font-black text-xs py-3.5 rounded-full shadow-lg mt-2"
+                      >
+                        Entrar com Criptografia
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {authStep === 'register' && (
+                  <div>
+                    <button 
+                      onClick={() => setAuthStep('prompt')}
+                      className="text-xs font-bold text-app-textDark flex items-center gap-1 mb-3"
+                    >
+                      <i data-lucide="arrow-left" className="w-4 h-4"></i> Voltar
+                    </button>
+
+                    <h2 className="text-lg font-black mb-1">Criar Conta Segura</h2>
+                    
+                    <div className="bg-app-textDark/15 p-3 rounded-xl mb-4 border border-app-textDark/20 text-[11px] leading-snug font-semibold">
+                      🛡️ <span className="font-bold">Privacidade Absoluta Garantida:</span> Suas conversas e dados de compra são protegidos.
+                    </div>
+
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAuthSuccess(e.target.name.value, e.target.email.value);
+                    }} className="space-y-3">
+                      <div>
+                        <label className="text-[10px] uppercase font-bold block mb-1">Apelido ou Nome Anônimo</label>
+                        <input 
+                          type="text" 
+                          name="name"
+                          required 
+                          placeholder="Ex: Cultivador_021"
+                          className="w-full bg-app-textDark/10 placeholder-app-textDark/60 text-xs text-app-textDark p-3 rounded-xl border border-app-textDark/20 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold block mb-1">E-mail Seguro</label>
+                        <input 
+                          type="email" 
+                          name="email"
+                          required 
+                          placeholder="seu.email@protegido.com"
+                          className="w-full bg-app-textDark/10 placeholder-app-textDark/60 text-xs text-app-textDark p-3 rounded-xl border border-app-textDark/20 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold block mb-1">Crie uma Senha Forte</label>
+                        <input 
+                          type="password" 
+                          required 
+                          placeholder="••••••••••••"
+                          className="w-full bg-app-textDark/10 placeholder-app-textDark/60 text-xs text-app-textDark p-3 rounded-xl border border-app-textDark/20 focus:outline-none"
+                        />
+                      </div>
+
+                      <button 
+                        type="submit"
+                        className="w-full bg-app-textDark text-white font-black text-xs py-3.5 rounded-full shadow-lg mt-2"
+                      >
+                        Continuar Cadastro
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {authStep === 'plan' && (
+                  <div className="space-y-3 text-app-textDark">
+                    <div className="flex items-center justify-between">
+                      <span className="bg-app-textDark text-app-gold text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
+                        Plano Especial
+                      </span>
+                      <span className="text-xs font-black text-app-textDark">
+                        R$ 9,99/mês
+                      </span>
+                    </div>
+
+                    <h2 className="text-xl font-black tracking-tight leading-tight">
+                      Seja um Membro VIP grow+
+                    </h2>
+
+                    <p className="text-xs font-medium opacity-90 leading-relaxed">
+                      Evolua sua experiência no app com vantagens e proteção premium em todas as suas compras e conversas.
+                    </p>
+
+                    <div className="bg-app-textDark/10 p-3 rounded-2xl border border-app-textDark/20 text-xs font-semibold space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-base">🎟️</span>
+                        <span><b>Cupons Exclusivos VIP:</b> Descontos recorrentes em Iluminação, Tendas e Nutrientes.</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-base">🔒</span>
+                        <span><b>Criptografia Total + Frete Anônimo:</b> Zero rastreamento e máxima privacidade na entrega.</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2">
+                      <button 
+                        onClick={handleSubscribePlan}
+                        className="w-full bg-app-textDark text-white font-black text-xs py-3.5 rounded-full shadow-lg hover:opacity-95"
+                      >
+                        Assinar grow+ por R$ 9,99/mês
+                      </button>
+
+                      <button 
+                        onClick={handleSkipPlan}
+                        className="w-full text-app-textDark text-xs font-extrabold py-2 text-center hover:underline opacity-80"
+                      >
+                        Pular e continuar com o Plano Free
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          )}
+
+          {/* SUBSCRIPTION PLAN MODAL */}
+          {showPlanModal && (
+            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+              <div className="bg-app-surface border border-app-coral text-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 relative shadow-2xl space-y-4">
+                
+                <button 
+                  onClick={() => setShowPlanModal(false)}
+                  className="absolute top-5 right-5 text-app-textMuted hover:text-white"
+                >
+                  <i data-lucide="x" className="w-6 h-6"></i>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <span className="bg-app-coral text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">
+                    Assinatura Exclusiva
+                  </span>
+                  <span className="text-app-lime font-black text-sm">
+                    R$ 9,99/mês
+                  </span>
+                </div>
+
+                <h2 className="text-xl font-black text-white tracking-tight">
+                  Eleve seu cultivo com o grow+
+                </h2>
+
+                <div className="space-y-2.5">
+                  <div className="bg-app-cardDark p-3 rounded-2xl border border-app-border flex items-start gap-3">
+                    <span className="text-lg">🎟️</span>
+                    <div className="text-xs">
+                      <h4 className="font-bold text-app-gold">Cupons de Desconto VIP</h4>
+                      <p className="text-app-textMuted text-[11px]">Economize até R$ 200/mês em insumos e equipamentos.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-app-cardDark p-3 rounded-2xl border border-app-border flex items-start gap-3">
+                    <span className="text-lg">🔒</span>
+                    <div className="text-xs">
+                      <h4 className="font-bold text-app-lime">Criptografia Total & Frete Anônimo</h4>
+                      <p className="text-app-textMuted text-[11px]">Embalagem 100% neutra e conversas sem retenção de dados.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 space-y-2">
+                  <button 
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        setShowPlanModal(false);
+                        setAuthStep('register');
+                        setShowAuthModal(true);
+                      } else {
+                        handleSubscribePlan();
+                      }
+                    }}
+                    className="w-full bg-app-coral text-white font-black text-xs py-3.5 rounded-full shadow-lg hover:opacity-95"
+                  >
+                    Quero assinar por R$ 9,99/mês
+                  </button>
+
+                  <button 
+                    onClick={() => setShowPlanModal(false)}
+                    className="w-full text-app-textMuted text-xs font-bold py-2 text-center hover:text-white"
+                  >
+                    Continuar no Plano Gratuito
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* BOTTOM NAVIGATION BAR */}
+          <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-app-surface border-t border-app-border py-2 px-3 flex justify-around items-center z-40 text-[10px] font-semibold text-app-textMuted shadow-2xl">
+            <button 
+              onClick={() => setActiveTab('inicio')}
+              className={`flex flex-col items-center gap-0.5 ${activeTab === 'inicio' ? 'text-app-gold font-bold' : ''}`}
+            >
+              <i data-lucide="home" className="w-5 h-5"></i>
+              <span>Início</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('categorias')}
+              className={`flex flex-col items-center gap-0.5 ${activeTab === 'categorias' ? 'text-app-gold font-bold' : ''}`}
+            >
+              <i data-lucide="grid" className="w-5 h-5"></i>
+              <span>Categorias</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('carrinho')}
+              className={`flex flex-col items-center gap-0.5 relative ${activeTab === 'carrinho' ? 'text-app-gold font-bold' : ''}`}
+            >
+              <i data-lucide="shopping-cart" className="w-5 h-5"></i>
+              {cart.length > 0 && (
+                <span className="absolute -top-1 right-2 bg-app-coral text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {cart.length}
+                </span>
+              )}
+              <span>Carrinho</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('chat')}
+              className={`flex flex-col items-center gap-0.5 ${activeTab === 'chat' ? 'text-app-gold font-bold' : ''}`}
+            >
+              <i data-lucide="message-square" className="w-5 h-5"></i>
+              <span>Chat Seguro</span>
+            </button>
+
+            <button 
+              onClick={handleProfileClick}
+              className={`flex flex-col items-center gap-0.5 ${activeTab === 'perfil' || activeTab === 'anunciar' ? 'text-app-gold font-bold' : ''}`}
+            >
+              <i data-lucide="user" className="w-5 h-5"></i>
+              <span>Mais</span>
+            </button>
+          </nav>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
